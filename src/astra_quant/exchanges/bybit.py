@@ -31,6 +31,7 @@ class BybitSpotClient:
     ) -> list[Candle]:
         if not 1 <= limit <= 1000:
             raise ValueError("Bybit kline limit must be between 1 and 1000.")
+        duration = 3_600_000 if interval is Interval.ONE_HOUR else 14_400_000
         params: dict[str, str | int] = {
             "category": "spot",
             "symbol": symbol.upper(),
@@ -45,8 +46,10 @@ class BybitSpotClient:
             response = await self._client.get("/v5/market/kline", params=params)
             response.raise_for_status()
             payload = response.json()
-            result = payload.get("result", {}) if isinstance(payload, dict) else {}
-            if not isinstance(payload, dict) or payload.get("retCode") != 0 or not isinstance(result.get("list"), list):
+            if not isinstance(payload, dict) or payload.get("retCode") != 0:
+                raise ExchangeDataError("Unexpected Bybit kline response.")
+            result = payload.get("result", {})
+            if not isinstance(result, dict) or not isinstance(result.get("list"), list):
                 raise ExchangeDataError("Unexpected Bybit kline response.")
             rows = result["list"]
             candles = [
@@ -55,7 +58,7 @@ class BybitSpotClient:
                     symbol=symbol.upper(),
                     interval=interval,
                     open_time=int(row[0]),
-                    close_time=(\n                        int(row[0])\n                        + (3_600_000 if interval is Interval.ONE_HOUR else 14_400_000)\n                        - 1\n                    ),
+                    close_time=int(row[0]) + duration - 1,
                     open=Decimal(row[1]),
                     high=Decimal(row[2]),
                     low=Decimal(row[3]),
