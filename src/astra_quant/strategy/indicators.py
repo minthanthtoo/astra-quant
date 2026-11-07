@@ -37,7 +37,7 @@ def rsi(values: Sequence[float], period: int = 14) -> float:
     losses = [max(-change, 0.0) for change in changes]
     average_gain = sum(gains[:period]) / period
     average_loss = sum(losses[:period]) / period
-    for gain, loss in zip(gains[period:], losses[period:]):
+    for gain, loss in zip(gains[period:], losses[period:], strict=True):
         average_gain = ((period - 1) * average_gain + gain) / period
         average_loss = ((period - 1) * average_loss + loss) / period
     if average_loss == 0:
@@ -46,7 +46,12 @@ def rsi(values: Sequence[float], period: int = 14) -> float:
     return 100.0 - 100.0 / (1.0 + relative_strength)
 
 
-def atr(highs: Sequence[float], lows: Sequence[float], closes: Sequence[float], period: int = 14) -> float:
+def atr(
+    highs: Sequence[float],
+    lows: Sequence[float],
+    closes: Sequence[float],
+    period: int = 14,
+) -> float:
     """Return latest Wilder ATR from equally sized high, low and close series."""
     if period < 1:
         raise ValueError("ATR period must be positive.")

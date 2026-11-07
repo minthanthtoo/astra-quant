@@ -17,7 +17,7 @@ def candles(prices: list[int]) -> list[Candle]:
 
 
 def test_backtester_executes_signal_at_next_bar_open() -> None:
-    data = candles([100, 110, 120, 130])
+    data = candles([100, 100, 120, 130])
     result = Backtester(initial_cash=1_000, fee_rate=0, slippage_rate=0).run(
         data, [Decision(DecisionAction.ENTER_LONG, data[0].close_time, data[0].close, ("test",))],
     )

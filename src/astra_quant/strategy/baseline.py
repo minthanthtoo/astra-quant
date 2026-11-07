@@ -25,7 +25,11 @@ class StrategyConfig:
     rsi_minimum: float = 50.0
 
     def __post_init__(self) -> None:
-        if min(self.trend_fast_ema, self.trend_slow_ema, self.confirmation_ema, self.rsi_period) < 2:
+        periods = (
+            self.trend_fast_ema, self.trend_slow_ema,
+            self.confirmation_ema, self.rsi_period,
+        )
+        if min(periods) < 2:
             raise ValueError("Indicator periods must be at least 2.")
         if self.trend_fast_ema >= self.trend_slow_ema:
             raise ValueError("Fast trend EMA must be shorter than slow trend EMA.")
@@ -70,10 +74,16 @@ class BaselineTrendStrategy:
         current_rsi = rsi(confirmation_closes, cfg.rsi_period)
         latest = confirmation_candles[-1]
         trend_up = fast > slow
-        confirmed = confirmation_closes[-1] > confirmation_ema and current_rsi >= cfg.rsi_minimum
+        confirmed = (
+            confirmation_closes[-1] > confirmation_ema
+            and current_rsi >= cfg.rsi_minimum
+        )
 
         if in_position and (not trend_up or confirmation_closes[-1] < confirmation_ema):
-            reasons = ("higher_timeframe_trend_lost",) if not trend_up else ("price_below_confirmation_ema",)
+            reasons = (
+                ("higher_timeframe_trend_lost",)
+                if not trend_up else ("price_below_confirmation_ema",)
+            )
             return Decision(DecisionAction.EXIT_LONG, latest.close_time, latest.close, reasons)
         if not in_position and trend_up and confirmed:
             return Decision(
@@ -82,8 +92,12 @@ class BaselineTrendStrategy:
                 latest.close,
                 ("higher_timeframe_uptrend", "one_hour_confirmation", "rsi_confirmation"),
             )
-        return Decision(DecisionAction.HOLD if in_position else DecisionAction.WAIT,
-                        latest.close_time, latest.close, ("entry_conditions_not_met",))
+        return Decision(
+            DecisionAction.HOLD if in_position else DecisionAction.WAIT,
+            latest.close_time,
+            latest.close,
+            ("entry_conditions_not_met",),
+        )
 
     @staticmethod
     def _validate_series(candles: list[Candle], interval: Interval) -> None:
