@@ -4,9 +4,9 @@ import httpx
 import pytest
 
 from astra_quant.config import Settings
+from astra_quant.exchanges.base import ExchangeDataError
 from astra_quant.exchanges.binance import BinanceSpotClient
 from astra_quant.exchanges.bybit import BybitSpotClient
-from astra_quant.exchanges.base import ExchangeDataError
 from astra_quant.market_data.models import Candle, Interval
 
 
