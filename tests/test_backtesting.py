@@ -32,7 +32,8 @@ def test_backtester_accounts_for_fees_and_slippage() -> None:
         Decision(DecisionAction.ENTER_LONG, data[0].close_time, data[0].close, ("entry",)),
         Decision(DecisionAction.EXIT_LONG, data[1].close_time, data[1].close, ("exit",)),
     ]
-    result = Backtester(initial_cash=1_000, fee_rate=0.001, slippage_rate=0.001).run(data, decisions)
+    engine = Backtester(initial_cash=1_000, fee_rate=0.001, slippage_rate=0.001)
+    result = engine.run(data, decisions)
     assert len(result.completed_trades) == 1
     assert result.completed_trades[0].net_pnl < 0
     assert result.final_equity < 1_000
@@ -47,10 +48,10 @@ def test_backtester_rejects_missing_signal_timestamp() -> None:
 
 def test_backtester_requires_hourly_execution_bars() -> None:
     data = candles([100, 101])
-    daily = [Candle(
+    four_hour = [Candle(
         exchange="test", symbol="BTCUSDT", interval=Interval.FOUR_HOUR,
         open_time=c.open_time, close_time=c.close_time, open=c.open, high=c.high,
         low=c.low, close=c.close, volume=c.volume,
     ) for c in data]
     with pytest.raises(ValueError, match="1-hour"):
-        Backtester().run(daily, [])
+        Backtester().run(four_hour, [])

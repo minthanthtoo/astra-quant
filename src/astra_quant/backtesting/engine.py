@@ -78,14 +78,22 @@ class Backtester:
 
         for index, candle in enumerate(candles):
             decision = decision_by_execution_index.get(index)
-            if decision is not None and decision.action == DecisionAction.ENTER_LONG and quantity == 0:
+            if (
+                decision is not None
+                and decision.action == DecisionAction.ENTER_LONG
+                and quantity == 0
+            ):
                 fill = float(candle.open) * (1.0 + self.slippage_rate)
                 quantity = cash / (fill * (1.0 + self.fee_rate))
                 entry_cost = quantity * fill * (1.0 + self.fee_rate)
                 cash = 0.0
                 entry_price = fill
                 entry_time = candle.open_time
-            elif decision is not None and decision.action == DecisionAction.EXIT_LONG and quantity > 0:
+            elif (
+                decision is not None
+                and decision.action == DecisionAction.EXIT_LONG
+                and quantity > 0
+            ):
                 fill = float(candle.open) * (1.0 - self.slippage_rate)
                 proceeds = quantity * fill * (1.0 - self.fee_rate)
                 net_pnl = proceeds - entry_cost
@@ -106,8 +114,15 @@ class Backtester:
         for value in values:
             peak = max(peak, value)
             peaks.append(peak)
-        drawdowns = [(peak_value - value) / peak_value for peak_value, value in zip(peaks, values)]
-        returns = [values[i] / values[i - 1] - 1.0 for i in range(1, len(values)) if values[i - 1] > 0]
+        drawdowns = [
+            (peak_value - value) / peak_value
+            for peak_value, value in zip(peaks, values, strict=True)
+        ]
+        returns = [
+            values[i] / values[i - 1] - 1.0
+            for i in range(1, len(values))
+            if values[i - 1] > 0
+        ]
         volatility = stdev(returns) if len(returns) > 1 else 0.0
         sharpe = mean(returns) / volatility * sqrt(self.bars_per_year) if volatility > 0 else 0.0
         final_equity = values[-1]
