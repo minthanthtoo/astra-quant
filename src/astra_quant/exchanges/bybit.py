@@ -46,7 +46,7 @@ class BybitSpotClient:
             response.raise_for_status()
             payload = response.json()
             result = payload.get("result", {}) if isinstance(payload, dict) else {}
-            if payload.get("retCode") != 0 or not isinstance(result.get("list"), list):
+            if not isinstance(payload, dict) or payload.get("retCode") != 0 or not isinstance(result.get("list"), list):
                 raise ExchangeDataError("Unexpected Bybit kline response.")
             rows = result["list"]
             candles = [
@@ -55,7 +55,7 @@ class BybitSpotClient:
                     symbol=symbol.upper(),
                     interval=interval,
                     open_time=int(row[0]),
-                    close_time=int(row[0]) + (3_600_000 if interval is Interval.ONE_HOUR else 14_400_000) - 1,
+                    close_time=(\n                        int(row[0])\n                        + (3_600_000 if interval is Interval.ONE_HOUR else 14_400_000)\n                        - 1\n                    ),
                     open=Decimal(row[1]),
                     high=Decimal(row[2]),
                     low=Decimal(row[3]),
