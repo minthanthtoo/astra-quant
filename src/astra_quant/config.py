@@ -15,7 +15,7 @@ class Settings:
     request_timeout_seconds: float = 10.0
 
     @classmethod
-    def from_env(cls) -> "Settings":
+    def from_env(cls) -> Settings:
         environment = os.getenv("ASTRA_ENV", "development").strip().lower()
         trading_mode = os.getenv("ASTRA_TRADING_MODE", "paper").strip().lower()
         symbol = os.getenv("ASTRA_DEFAULT_SYMBOL", "BTCUSDT").strip().upper()
