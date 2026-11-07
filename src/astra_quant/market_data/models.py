@@ -3,10 +3,10 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from decimal import Decimal
-from enum import Enum
+from enum import StrEnum
 
 
-class Interval(str, Enum):
+class Interval(StrEnum):
     ONE_HOUR = "1h"
     FOUR_HOUR = "4h"
 
